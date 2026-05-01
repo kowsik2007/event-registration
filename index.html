@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Event Registration Pro</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        body {
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+        }
+
+        .card {
+            backdrop-filter: blur(15px);
+            background: rgba(255,255,255,0.1);
+            border-radius: 20px;
+            padding: 30px;
+            width: 360px;
+            color: white;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            animation: slideUp 0.8s ease;
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .progress {
+            height: 8px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 15px;
+        }
+
+        .progress-bar {
+            height: 100%;
+            width: 100%;
+            background: #00ffcc;
+            transition: 0.5s;
+        }
+
+        .input-group {
+            position: relative;
+            margin: 15px 0;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            outline: none;
+        }
+
+        label {
+            position: absolute;
+            left: 10px;
+            top: 10px;
+            color: #aaa;
+            transition: 0.3s;
+        }
+
+        input:focus + label,
+        input:valid + label {
+            top: -10px;
+            font-size: 12px;
+            color: #00ffcc;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            background: #00ffcc;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            position: relative;
+            overflow: hidden;
+        }
+
+        button:hover {
+            transform: scale(1.05);
+        }
+
+        .message {
+            text-align: center;
+            margin-top: 15px;
+        }
+
+        .success { color: #00ffcc; }
+        .error { color: #ff6b6b; }
+
+        .popup {
+            position: fixed;
+            top: 20px;
+            right: -300px;
+            background: #00ffcc;
+            color: black;
+            padding: 15px;
+            border-radius: 10px;
+            transition: 0.5s;
+        }
+
+        .popup.show {
+            right: 20px;
+        }
+
+        @keyframes slideUp {
+            from {transform: translateY(40px); opacity: 0;}
+            to {transform: translateY(0); opacity: 1;}
+        }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>🎉 Event Registration</h2>
+
+    <div class="progress">
+        <div class="progress-bar" id="progressBar"></div>
+    </div>
+
+    <div class="input-group">
+        <input type="text" id="name" required>
+        <label>Name</label>
+    </div>
+
+    <div class="input-group">
+        <input type="email" id="email" required>
+        <label>Email</label>
+    </div>
+
+    <div class="input-group">
+        <input type="text" id="phone" required>
+        <label>Phone</label>
+    </div>
+
+    <button onclick="App.register(event)">Register</button>
+
+    <div class="message" id="message"></div>
+</div>
+
+<div class="popup" id="popup">Registered Successfully!</div>
+
+<script>
+const App = {
+    seats: 5,
+    maxSeats: 5,
+
+    init() {
+        this.updateProgress();
+    },
+
+    getData() {
+        return {
+            name: document.getElementById("name").value.trim(),
+            email: document.getElementById("email").value.trim(),
+            phone: document.getElementById("phone").value.trim()
+        };
+    },
+
+    validate(user) {
+        if (!user.name || !user.email || !user.phone) {
+            this.showMessage("All fields required!", "error");
+            return false;
+        }
+
+        if (!user.email.includes("@")) {
+            this.showMessage("Invalid email!", "error");
+            return false;
+        }
+
+        if (user.phone.length !== 10 || isNaN(user.phone)) {
+            this.showMessage("Phone must be 10 digits!", "error");
+            return false;
+        }
+
+        if (this.seats <= 0) {
+            this.showMessage("Event Full!", "error");
+            return false;
+        }
+
+        return true;
+    },
+
+    register(e) {
+        this.rippleEffect(e);
+
+        const user = this.getData();
+
+        if (!this.validate(user)) return;
+
+        this.process(user);
+    },
+
+    process(user) {
+        this.seats--;
+        this.updateProgress();
+        this.showPopup();
+        this.showMessage(`Welcome ${user.name}!`, "success");
+        this.clearForm();
+    },
+
+    updateProgress() {
+        const percent = (this.seats / this.maxSeats) * 100;
+        document.getElementById("progressBar").style.width = percent + "%";
+    },
+
+    showMessage(msg, type) {
+        const box = document.getElementById("message");
+        box.textContent = msg;
+        box.className = "message " + type;
+    },
+
+    showPopup() {
+        const popup = document.getElementById("popup");
+        popup.classList.add("show");
+        setTimeout(() => popup.classList.remove("show"), 2000);
+    },
+
+    clearForm() {
+        document.getElementById("name").value = "";
+        document.getElementById("email").value = "";
+        document.getElementById("phone").value = "";
+    },
+
+    rippleEffect(e) {
+        const button = e.currentTarget;
+        const circle = document.createElement("span");
+        const diameter = Math.max(button.clientWidth, button.clientHeight);
+
+        circle.style.width = circle.style.height = diameter + "px";
+        circle.style.position = "absolute";
+        circle.style.background = "rgba(255,255,255,0.5)";
+        circle.style.borderRadius = "50%";
+        circle.style.left = e.offsetX - diameter/2 + "px";
+        circle.style.top = e.offsetY - diameter/2 + "px";
+
+        button.appendChild(circle);
+
+        setTimeout(() => circle.remove(), 500);
+    }
+};
+
+App.init();
+</script>
+
+</body>
+</html>
